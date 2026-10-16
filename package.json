@@ -1,0 +1,77 @@
+{
+  "name": "widesend",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qcheng-info/widesend.git"
+  },
+  "homepage": "https://widesend.app",
+  "bugs": {
+    "url": "https://github.com/qcheng-info/widesend/issues"
+  },
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "tsc --noEmit && tsc -p tsconfig.worker.json --noEmit && vite build",
+    "check": "npm run build && npm test",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "setup": "node scripts/setup.mjs",
+    "deploy": "node scripts/deploy.mjs",
+    "deploy:all": "node scripts/deploy.mjs --all --check",
+    "deploy:dry": "node scripts/deploy.mjs --dry-run",
+    "preview": "wrangler dev --port 8787",
+    "preview:test": "node scripts/preview-test.mjs",
+    "test:large": "node scripts/large-test.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@noble/curves": "2.4.0",
+    "@noble/hashes": "2.4.0",
+    "jose": "6.2.12",
+    "lucide-react": "1.44.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260910.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "4.7.0",
+    "esbuild": "0.25.12",
+    "jsonc-parser": "3.3.1",
+    "miniflare": "5.20260910.0-alpha",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3",
+    "vite": "6.4.3",
+    "vitest": "4.1.11",
+    "wrangler": "4.131.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "ROOMS": {
+        "description": "One-to-one transfers: pairing and the encrypted relay. Created for you."
+      },
+      "SHARE": {
+        "description": "Share rooms: members, offers and the encrypted relay. Created for you."
+      },
+      "GUARD": {
+        "description": "Abuse limits and the daily relay budget. Created for you."
+      },
+      "NETWORK_RATE": {
+        "description": "Short bursts per network. Change `namespace_id` only if another instance on this account uses 1001."
+      },
+      "SITE_RATE": {
+        "description": "Short bursts for the whole site. Change `namespace_id` only if another instance on this account uses 1002."
+      }
+    }
+  }
+}

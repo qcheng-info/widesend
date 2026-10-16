@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>WideSend · Activity</title>
+    <link rel="icon" type="image/svg+xml" href="/widesend.svg" />
+    <link rel="stylesheet" href="/admin.css" />
+    <script src="/controls.js" defer></script>
+    <script src="/admin.js" defer></script>
+    <script src="/health.js" defer></script>
+    <script src="/rooms.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/"
+        ><img src="/widesend.svg" width="38" height="38" alt="" />widesend<span> / admin</span></a
+      >
+      <div class="account">
+        <span id="email"></span><a id="sign-out" href="/cdn-cgi/access/logout">Sign out</a>
+      </div>
+    </header>
+    <main>
+      <div class="intro">
+        <div>
+          <p class="eyebrow">YOUR TRANSFER ACTIVITY</p>
+          <h1>See what’s moving.</h1>
+          <p>Connection history and reported file details from the last 90 days.</p>
+        </div>
+        <button id="refresh" type="button">Refresh</button>
+      </div>
+      <div class="admin-tabs" role="tablist" aria-label="Admin views">
+        <button
+          type="button"
+          role="tab"
+          id="history-tab"
+          aria-controls="history-panel"
+          aria-selected="true"
+          tabindex="0"
+        >
+          History
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="health-tab"
+          aria-controls="health-panel"
+          aria-selected="false"
+          tabindex="-1"
+        >
+          Health overview
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="rooms-tab"
+          aria-controls="rooms-panel"
+          aria-selected="false"
+          tabindex="-1"
+        >
+          Rooms
+        </button>
+      </div>
+      <div id="history-panel" role="tabpanel" aria-labelledby="history-tab">
+        <aside class="notice">
+          IPs and connection times are observed by the server. Filenames, sizes, fingerprints,
+          completion, and routes are reported by browsers and can be inaccurate. IPs identify
+          connections, not people. File contents are never stored.
+        </aside>
+        <form id="filters">
+          <label class="search"
+            >Search<input
+              id="q"
+              type="search"
+              maxlength="200"
+              placeholder="Code, IP address, filename, MD5, or SHA-256"
+          /></label>
+          <div class="filter-field status-field">
+            <span id="status-label">Status</span>
+            <input id="status" type="hidden" />
+            <button
+              id="status-toggle"
+              class="picker-toggle"
+              type="button"
+              aria-labelledby="status-label status-value"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              aria-controls="status-menu"
+            >
+              <span id="status-value">All activity</span
+              ><span class="chevron" aria-hidden="true"></span>
+            </button>
+            <div
+              id="status-menu"
+              class="picker-panel status-menu"
+              role="listbox"
+              aria-labelledby="status-label"
+              hidden
+            ></div>
+          </div>
+          <div class="filter-field date-field" data-date="from">
+            <span id="from-label">From (UTC)</span>
+            <input id="from" type="hidden" />
+            <button
+              id="from-toggle"
+              class="picker-toggle"
+              type="button"
+              aria-labelledby="from-label from-value"
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              aria-controls="from-calendar"
+            >
+              <span id="from-value" class="placeholder">Any date</span
+              ><span class="calendar-icon" aria-hidden="true"></span>
+            </button>
+            <div
+              id="from-calendar"
+              class="picker-panel calendar"
+              role="dialog"
+              aria-label="From date (UTC)"
+              hidden
+            ></div>
+          </div>
+          <div class="filter-field date-field" data-date="to">
+            <span id="to-label">To (UTC)</span>
+            <input id="to" type="hidden" />
+            <button
+              id="to-toggle"
+              class="picker-toggle"
+              type="button"
+              aria-labelledby="to-label to-value"
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              aria-controls="to-calendar"
+            >
+              <span id="to-value" class="placeholder">Any date</span
+              ><span class="calendar-icon" aria-hidden="true"></span>
+            </button>
+            <div
+              id="to-calendar"
+              class="picker-panel calendar"
+              role="dialog"
+              aria-label="To date (UTC)"
+              hidden
+            ></div>
+          </div>
+          <button type="submit" class="primary">Find transfers</button>
+        </form>
+        <div id="error" role="alert" hidden></div>
+        <div class="activity-layout">
+          <section class="card records-card" aria-label="Transfers">
+            <div class="card-title">
+              <div>
+                <h2>Transfers</h2>
+                <p class="panel-hint">Select a record to see its details.</p>
+              </div>
+              <span id="summary" role="status">Loading…</span>
+            </div>
+            <ul id="transfers" class="record-list" aria-label="Transfer records"></ul>
+            <div id="empty" hidden>
+              No matching transfers. New activity will appear here after someone creates a transfer.
+            </div>
+            <div class="pagination">
+              <button id="previous" disabled>Previous</button
+              ><button id="next" disabled>Next</button>
+            </div>
+          </section>
+          <section
+            id="detail"
+            class="card detail-card"
+            aria-label="Transfer details"
+            aria-busy="false"
+          >
+            <div class="card-title">
+              <div>
+                <h2 id="detail-heading" tabindex="-1">Transfer details</h2>
+                <p class="panel-hint">A closer look at this transfer.</p>
+              </div>
+              <button id="close-detail" type="button" hidden>Clear selection</button>
+            </div>
+            <div id="detail-placeholder" class="detail-placeholder">
+              <span class="detail-symbol" aria-hidden="true">↗</span>
+              <h3>Select a transfer</h3>
+              <p>
+                Choose a record from the list to view its files, fingerprints, and connection
+                history.
+              </p>
+            </div>
+            <div id="detail-selected" hidden>
+              <p id="detail-id" class="mono"></p>
+              <div id="detail-content"></div>
+            </div>
+          </section>
+        </div>
+        <p class="footnote">
+          Records are hidden after 90 days and removed by hourly cleanup. History begins when
+          activity logging is enabled. Missing reports remain unknown; logging failures do not stop
+          file transfers.
+        </p>
+      </div>
+      <div id="rooms-panel" role="tabpanel" aria-labelledby="rooms-tab" hidden>
+        <aside class="notice">
+          Rooms, members, IPs and connection times are observed by the server. Offers, filenames,
+          fingerprints and delivery results are reported by members' browsers and can be inaccurate.
+          File contents are never stored.
+        </aside>
+        <form id="room-filters" class="room-filters">
+          <label class="search"
+            >Search rooms<input
+              id="room-q"
+              type="search"
+              maxlength="200"
+              placeholder="Code, member name, IP address, filename, MD5, or SHA-256"
+          /></label>
+          <button type="submit">Find rooms</button>
+        </form>
+        <div id="room-error" role="alert" hidden></div>
+        <div class="activity-layout">
+          <section class="card records-card" aria-label="Rooms">
+            <div class="card-title">
+              <div>
+                <h2>Rooms</h2>
+                <p class="panel-hint">Select a room to see its members and files.</p>
+              </div>
+              <span id="room-summary" role="status">Not loaded</span>
+            </div>
+            <ul id="rooms" class="record-list" aria-label="Room records"></ul>
+            <div id="rooms-empty" hidden>
+              No matching rooms. New rooms appear here after someone creates one.
+            </div>
+            <div class="pagination">
+              <button id="rooms-previous" disabled>Previous</button
+              ><button id="rooms-next" disabled>Next</button>
+            </div>
+          </section>
+          <section
+            id="room-detail"
+            class="card detail-card"
+            aria-label="Room details"
+            aria-busy="false"
+          >
+            <div class="card-title">
+              <div>
+                <h2 id="room-detail-heading" tabindex="-1">Room details</h2>
+                <p class="panel-hint">Members, offers and connections in this room.</p>
+              </div>
+            </div>
+            <div id="room-placeholder" class="detail-placeholder">
+              <span class="detail-symbol" aria-hidden="true">↗</span>
+              <h3>Select a room</h3>
+              <p>Choose a room from the list to view its members, files, and delivery results.</p>
+            </div>
+            <div id="room-selected" hidden>
+              <p id="room-id" class="mono"></p>
+              <div id="room-content"></div>
+            </div>
+          </section>
+        </div>
+        <p class="footnote">
+          Room records are hidden after 90 days and removed by hourly cleanup, like transfers.
+        </p>
+      </div>
+      <div id="health-panel" role="tabpanel" aria-labelledby="health-tab" hidden>
+        <section
+          class="card health-card"
+          aria-labelledby="health-heading"
+          aria-busy="true"
+          id="health"
+        >
+          <div class="card-title health-title">
+            <div>
+              <p class="eyebrow">AT A GLANCE</p>
+              <h2 id="health-heading">Transfer health</h2>
+            </div>
+            <div class="health-period" role="group" aria-label="Health period">
+              <button type="button" data-period="today" aria-pressed="true">Today</button>
+              <button type="button" data-period="last7Days" aria-pressed="false">
+                Last 7 days
+              </button>
+            </div>
+          </div>
+          <div class="health-meta">
+            <span id="health-period-label">Today, UTC</span
+            ><span id="health-updated" role="status">Loading overview…</span>
+          </div>
+          <p id="health-error" role="status" hidden></p>
+          <div class="health-live" id="health-live">Connection reservations are loading…</div>
+          <div class="health-metrics" id="health-metrics"></div>
+          <div class="health-operations">
+            <section aria-labelledby="relay-heading">
+              <h3 id="relay-heading">Relay usage</h3>
+              <div id="health-relay"></div>
+            </section>
+            <section aria-labelledby="cleanup-heading">
+              <h3 id="cleanup-heading">90-day cleanup</h3>
+              <div id="health-cleanup"></div>
+            </section>
+          </div>
+          <div class="health-breakdowns">
+            <section aria-labelledby="outcomes-heading">
+              <h3 id="outcomes-heading">Transfer outcomes</h3>
+              <div id="health-outcomes"></div>
+              <p class="health-note">
+                Current outcomes of transfers started in this period. Completion is receiver
+                reported.
+              </p>
+            </section>
+            <section aria-labelledby="routes-heading">
+              <h3 id="routes-heading">Connection routes</h3>
+              <div id="health-routes"></div>
+              <p class="health-note">
+                Any relay use takes precedence. Unknown routes remain unknown.
+              </p>
+              <div id="health-blocks"></div>
+            </section>
+          </div>
+          <details class="health-definitions">
+            <summary>About these numbers</summary>
+            <p>
+              Reconnections count additional admitted connections for the same sender or receiver,
+              including reopened tabs. They exclude unsuccessful retries. Reservations can include
+              completed tabs and linger for up to 15 minutes after an unreported disconnect.
+            </p>
+            <p>
+              The period uses UTC calendar days. Search filters in History affect the transfer list,
+              not this overview.
+            </p>
+            <p id="health-coverage">Blocked-attempt history begins with this update.</p>
+            <p>
+              Monitoring is best effort. Block counters are batched about every 10 seconds; a
+              restart or outage can leave gaps. Activity history can also have missing browser
+              reports.
+            </p>
+            <p>
+              Relay bytes count forwarded data once, including key exchange, encrypted signaling,
+              overhead and retries. Direct file bytes are excluded. Observed incoming WebSocket
+              messages include control and rejected messages, but exclude automatic heartbeats.
+              Request units are estimated as messages ÷ 20; HTTP requests, internal calls, alarms,
+              runtime, database usage and other apps are excluded. These are not your account's
+              remaining allowances.
+            </p>
+            <p id="health-relay-coverage"></p>
+            <p>Relay declines count each transfer at most once per UTC day.</p>
+            <p>
+              The daily relay budget closes admission for new relay transfers at the configured
+              threshold. Admitted sessions keep access until their original expiry, including after
+              reconnecting, so traffic can exceed the budget. Updated browsers can still connect
+              directly. Reports flush during activity about every 30 seconds or 512 messages, and on
+              disconnect; quiet sessions may take five minutes. An outage can leave gaps.
+            </p>
+            <p>
+              Cleanup runs hourly in bounded batches, with a per-run database write budget. Any
+              backlog, failed run or stale status is shown above; database quotas can delay
+              deletion.
+            </p>
+          </details>
+          <div class="health-footer">
+            <span>App activity counts, not Cloudflare billing or quota usage.</span
+            ><a href="https://dash.cloudflare.com/" target="_blank" rel="noopener noreferrer"
+              >Cloudflare usage ↗</a
+            >
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

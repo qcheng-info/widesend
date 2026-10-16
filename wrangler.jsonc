@@ -1,0 +1,53 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // WideSend's public site, ready to deploy to your own Cloudflare account as it is:
+  // the Deploy to Cloudflare button uses this file. It serves the site on workers.dev
+  // and keeps no activity record. `npm run setup` adds a custom domain and the admin
+  // dashboard by editing this file (docs/self-hosting.md); every setting is described
+  // in docs/configuration.md. Settings not written here use the defaults in the code.
+  "name": "widesend",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"],
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "ROOMS",
+        "class_name": "TransferRoom",
+      },
+      { "name": "GUARD", "class_name": "AbuseGuard" },
+      { "name": "SHARE", "class_name": "ShareRoom" },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["TransferRoom"],
+    },
+    { "tag": "v2", "new_sqlite_classes": ["AbuseGuard"] },
+    { "tag": "v3", "new_sqlite_classes": ["ShareRoom"] },
+  ],
+  // Short bursts per network and for the whole site. Namespace IDs are per Cloudflare
+  // account: another instance on the same account needs another pair (setup picks one).
+  "ratelimits": [
+    { "name": "NETWORK_RATE", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } },
+    { "name": "SITE_RATE", "namespace_id": "1002", "simple": { "limit": 1200, "period": 60 } },
+  ],
+  // Errors only: the Worker logs unexpected failures itself (see worker/diagnostics.ts)
+  // with no IP addresses or file details. Automatic per-request logs stay off.
+  "observability": {
+    "enabled": true,
+    "logs": { "enabled": true, "invocation_logs": false },
+  },
+  // Hourly cleanup of activity older than 90 days, once there is an activity record.
+  "triggers": {
+    "crons": ["17 * * * *"],
+  },
+}

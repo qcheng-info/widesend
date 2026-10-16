@@ -1,0 +1,46 @@
+{
+  "name": "widesend",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qcheng-info/widesend.git",
+    "directory": "cli"
+  },
+  "homepage": "https://github.com/qcheng-info/widesend/tree/main/cli#readme",
+  "bugs": {
+    "url": "https://github.com/qcheng-info/widesend/issues"
+  },
+  "description": "Send files from the terminal with a six-character code, to one person or several. Receive them in a browser or with this command.",
+  "type": "module",
+  "bin": {
+    "widesend": "dist/widesend.mjs"
+  },
+  "files": [
+    "dist/widesend.mjs",
+    "dist/THIRD_PARTY_NOTICES.txt"
+  ],
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "keywords": [
+    "file transfer",
+    "send files",
+    "webrtc",
+    "spake2",
+    "cli"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "tsc -p tsconfig.json && node build.mjs && vitest run",
+    "test": "vitest run",
+    "test:e2e": "node build.mjs && playwright test -c test/e2e/playwright.config.ts",
+    "prepack": "node build.mjs"
+  },
+  "dependencies": {
+    "node-datachannel": "0.33.4"
+  },
+  "devDependencies": {
+    "uqr": "0.1.3"
+  }
+}
