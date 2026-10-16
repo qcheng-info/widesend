@@ -28,6 +28,21 @@ it('sends Origin, stands in for page globals, and can turn direct connections of
   server.close();
 });
 
+it('ends a refused connection attempt with a close event, as browsers do', async () => {
+  // Node 22 fires only `error` here, and transfers retry from `close`.
+  const server = createServer((_request, response) => response.writeHead(429).end());
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  await installEnvironment(new URL(origin), true);
+  const events: string[] = [];
+  const socket = new WebSocket(`${origin.replace('http', 'ws')}/api/rooms/x`, ['widesend']);
+  socket.onerror = () => events.push('error');
+  socket.onclose = (event) => events.push(`close ${event.code}`);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  expect(events).toEqual(['error', 'close 1006']);
+  server.close();
+});
+
 it('gives browsers candidates without the SDP a= prefix', async () => {
   expect(await installEnvironment(new URL('https://widesend.example'), false)).toEqual({
     available: true,

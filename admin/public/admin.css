@@ -152,7 +152,7 @@ button:disabled {
 }
 .mono,
 code {
-  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
   font-size: 12px;
   overflow-wrap: anywhere;
 }
@@ -521,7 +521,7 @@ code {
   border-radius: 6px;
   background: #f0f6e6;
   color: #435e2c;
-  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
   font-size: 15px;
   font-weight: 650;
   letter-spacing: 0.12em;

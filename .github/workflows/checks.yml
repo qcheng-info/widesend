@@ -1,7 +1,8 @@
 # Type checks, builds and unit tests on every push to main and every pull request.
 # The browser tests (npm run test:e2e) need Chrome, WebKit and Firefox and take about
 # 15 minutes: run them locally before a pull request that changes pages or transfers.
-# Actions are pinned to commits; the comment names the release.
+# Actions are pinned to commits; the comment names the release. Both jobs run on the oldest
+# supported Node.js and the current LTS: their built-in WebSocket behaves differently.
 name: Checks
 
 on:
@@ -14,26 +15,34 @@ permissions:
 
 jobs:
   site:
-    name: Site and Worker
+    name: Site and Worker (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
       - run: npm run check
       - run: npm run format:check
 
   cli:
-    name: Command line
+    name: Command line (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: ${{ matrix.node }}
           cache: npm
           cache-dependency-path: |
             package-lock.json

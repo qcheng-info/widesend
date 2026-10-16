@@ -10,6 +10,7 @@ import {
 } from '../../src/room/environment';
 import type { Room, RoomSnapshot } from '../../src/room/room';
 import { MemoryHistoryStore } from '../../src/room/history';
+import { closeAfterFailedConnection } from '../../shared/socket-close';
 import { shareRuntime } from './share-runtime';
 
 // Test-only: an in-memory destination that verifies like the OPFS one.
@@ -144,6 +145,8 @@ export async function roomHarness(options: Parameters<typeof shareRuntime>[0] = 
       connect(url, protocols) {
         if (!reachable) return new UnreachableSocket();
         const real = new WebSocket(url, { protocols, headers: { Origin: origin } } as never);
+        // Browsers fire close after a failed attempt; Node 22 needs this (shared/socket-close.ts).
+        closeAfterFailedConnection(real);
         const socket = new InspectableSocket(real, env.hooks);
         env.sockets.push(socket);
         return socket;

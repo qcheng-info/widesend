@@ -6,7 +6,9 @@ directly between devices over WebRTC when they can, and through an encrypted rel
 can't. Nothing is stored on the server, and there is no account to create.
 
 **Try it at [widesend.app](https://widesend.app)**, a free public instance, or run your own
-on Cloudflare's free plan in a few minutes.
+on Cloudflare's free plan in a few minutes. widesend.app keeps the 90-day
+[activity record](#admin-dashboard-optional) described below; your own instance keeps none
+unless you add the dashboard.
 
 <p align="center">
   <img src="docs/images/choose.png" width="760" alt="The WideSend page with three files chosen and a Create transfer button">

@@ -56,6 +56,12 @@ Run setup again at any time to change an instance. Press Enter to keep an answer
 `--no-deploy` only writes the files without calling Cloudflare; with the dashboard, give it
 the database with `--database-id`.
 
+On a custom domain, turn on **Always Use HTTPS** for its zone in the Cloudflare dashboard
+(**SSL/TLS → Edge Certificates**). WideSend only works over HTTPS: a page opened from an
+`http://` link can't encrypt. The site tells browsers to keep using HTTPS once they have
+visited it, but that can't help with the first visit. workers.dev addresses, and domains
+ending in `.app` or `.dev`, are always HTTPS.
+
 ## Use your instance
 
 Open the site on both devices. Everyone using one code must use the same site.

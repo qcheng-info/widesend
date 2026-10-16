@@ -929,7 +929,10 @@ footer {
   margin: 18px 0 0;
 }
 .help-panel a {
-  color: inherit;
+  color: #627e3f;
+  font-weight: 550;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .close-help {
   position: absolute;

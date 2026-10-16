@@ -17,6 +17,16 @@ test('room endpoints require a same-origin WebSocket upgrade', async ({ request 
   expect((await request.get('/api/missing')).status()).toBe(404);
 });
 
+test('pages are sent with the security headers, and browsers are told to stay on HTTPS', async ({
+  request,
+}) => {
+  const headers = (await request.get('/')).headers();
+  expect(headers['strict-transport-security']).toBe('max-age=31536000');
+  expect(headers['content-security-policy']).toContain("frame-ancestors 'none'");
+  expect(headers['x-content-type-options']).toBe('nosniff');
+  expect(headers['referrer-policy']).toBe('no-referrer');
+});
+
 test('a room pins one receiver, tells a third client the code is used, and survives replacing a socket', async ({
   page,
 }) => {

@@ -1,8 +1,12 @@
 // The web app's transfer engine runs here unchanged. It expects a few browser
 // globals; these are their Node stand-ins (see test/unit/globals.test.ts).
+import { closeAfterFailedConnection } from '../../shared/socket-close';
+
 export type Direct = { available: true } | { available: false; reason: string };
 
 const sockets = new Set<WebSocket>();
+// Node's own class, kept before installEnvironment replaces the global.
+const NodeWebSocket = globalThis.WebSocket;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 function define(name: string, value: unknown) {
   Object.defineProperty(globalThis, name, { value, configurable: true, writable: true });
@@ -19,11 +23,11 @@ export async function installEnvironment(server: URL, relayOnly: boolean): Promi
   define('location', new URL(origin));
   define('document', Object.assign(new EventTarget(), { visibilityState: 'visible' }));
   define('window', new EventTarget());
-  const NodeWebSocket = globalThis.WebSocket;
   class OriginWebSocket extends NodeWebSocket {
     constructor(url: string | URL, protocols?: string | string[]) {
       // Browsers send Origin by themselves, and the Worker refuses upgrades without it.
       super(url, { protocols, headers: { Origin: origin } } as unknown as string[]);
+      closeAfterFailedConnection(this);
       sockets.add(this);
       this.addEventListener('close', () => sockets.delete(this));
     }
